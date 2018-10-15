@@ -1,7 +1,7 @@
 package main
 
 import (
-	catcoin "github.com/aprocysanae/catcoin/app"
+	"github.com/MintForge/mintstep/basecoin"
 	"github.com/tendermint/tendermint/abci/server"
 	"github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
@@ -14,7 +14,7 @@ const (
 
 func main() {
 	var app types.Application
-	app = catcoin.NewCatCoinApplication()
+	app = basecoin.NewBaseCoinApplication()
 
 	srv, err := server.NewServer(flagAddress, flagAbci, app)
 	if err != nil {

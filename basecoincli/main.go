@@ -10,7 +10,7 @@ import (
 
 var RootCmd = &cobra.Command{
 	Use:   "cli",
-	Short: "the Client to catcoin",
+	Short: "the Client to basecoin",
 }
 
 var createAccountCmd = &cobra.Command{
