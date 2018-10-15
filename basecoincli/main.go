@@ -25,7 +25,7 @@ var createAccountCmd = &cobra.Command{
 
 func cmdCreateAccount(cmd *cobra.Command, args []string) error {
 	address := args[0]
-	resp, err := http.Get(fmt.Sprintf(`http://localhost:26657/broadcast_tx_commit?tx="address=%v"`, address)
+	resp, err := http.Get(fmt.Sprintf(`http://localhost:26657/broadcast_tx_commit?tx="address=%v"`, address))
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
