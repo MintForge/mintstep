@@ -1,8 +1,8 @@
 package basecoin
 
 import (
-	"bytes"
 	"encoding/binary"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -33,8 +33,9 @@ func (app *BaseCoinApplication) Info(req abci.RequestInfo) abci.ResponseInfo {
 }
 
 func (app *BaseCoinApplication) DeliverTx(txBytes []byte) abci.ResponseDeliverTx {
-	result := ExecTx(app.state, txBytes)
+
 	tags := []cmn.KVPair{}
+	result := ExecTx(app.state, txBytes)
 	if result.IsErr() {
 		return abci.ResponseDeliverTx{Code: TypeExecuteError, Tags: tags}
 	}
@@ -75,19 +76,45 @@ func (app *BaseCoinApplication) Query(req abci.RequestQuery) (res abci.ResponseQ
 	return
 }
 
-func ExecTx(state *State, tx []byte) (res Result) {
-	var key, value []byte
-	parts := bytes.Split(tx, []byte("="))
-	if len(parts) == 2 {
-		key, value = parts[0], parts[1]
-	} else {
-		key, value = tx, tx
+func ExecTx(state *State, txBytes []byte) (res Result) {
+	var raw_tx json.RawMessage
+	tx := Tx{
+		RawTx: &raw_tx,
+	}
+	if err := json.Unmarshal(txBytes, &tx); err != nil {
+		res.Code = TypeJsonEncodingError
+		return
+	}
+	switch tx.Type {
+	case TxTypeCreate:
+		var t CreateTx
+		if err := json.Unmarshal(raw_tx, &t); err != nil {
+			res.Code = TypeExecuteError
+			return res
+		}
+		account := NewAccount(t.Name, 10000)
+		SetAccount(state, t.Name, *account)
+	case TxTypeTransfer:
+		var t TransferTx
+		if err := json.Unmarshal(raw_tx, &t); err != nil {
+			res.Code = TypeExecuteError
+			return res
+		}
+		sender, res := GetAccount(state, t.Sender)
+		if res.IsErr() {
+			res.Code = TypeAddressInvalid
+			return res
+		}
+		receiver, res := GetAccount(state, t.Receiver)
+		if res.IsErr() {
+			res.Code = TypeAddressInvalid
+			return res
+		}
+		sender.Sub(t.Coin)
+		receiver.Add(t.Coin)
+		res.Code = TypeOK
 	}
 
-	if bytes.Compare(key, []byte("address")) == 0 {
-		account := NewAccount(value, 10000)
-		SetAccount(state, value, *account)
-	}
 	res.Code = TypeOK
-	return
+	return res
 }
