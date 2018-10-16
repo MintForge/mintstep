@@ -1,6 +1,7 @@
 package basecoin
 
 import (
+	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
@@ -33,9 +34,12 @@ func (app *BaseCoinApplication) Info(req abci.RequestInfo) abci.ResponseInfo {
 }
 
 func (app *BaseCoinApplication) DeliverTx(txBytes []byte) abci.ResponseDeliverTx {
-
+	decoded, err := base64.StdEncoding.DecodeString(string(txBytes))
 	tags := []cmn.KVPair{}
-	result := ExecTx(app.state, txBytes)
+	if err != nil {
+		return abci.ResponseDeliverTx{Code: TypeJsonEncodingError, Tags: tags}
+	}
+	result := ExecTx(app.state, decoded)
 	if result.IsErr() {
 		return abci.ResponseDeliverTx{Code: TypeExecuteError, Tags: tags}
 	}
@@ -67,7 +71,7 @@ func (app *BaseCoinApplication) Query(req abci.RequestQuery) (res abci.ResponseQ
 	if req.Path == "account" {
 		account, _ := GetAccount(app.state, req.Data)
 		if account != nil {
-			res.Value = account.Address
+			res.Log = account.String()
 		} else {
 			res.Log = "not found"
 		}
@@ -112,6 +116,8 @@ func ExecTx(state *State, txBytes []byte) (res Result) {
 		}
 		sender.Sub(t.Coin)
 		receiver.Add(t.Coin)
+		SetAccount(state, sender.Address, *sender)
+		SetAccount(state, receiver.Address, *receiver)
 		res.Code = TypeOK
 	}
 

@@ -6,5 +6,5 @@ type Result struct {
 }
 
 func (res Result) IsErr() bool {
-	return res.Code == TypeOK
+	return res.Code != TypeOK
 }
