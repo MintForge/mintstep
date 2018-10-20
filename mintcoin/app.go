@@ -103,32 +103,6 @@ func ExecTx(state *State, txBytes []byte) (res Result) {
 			res.Code = TypeVerifyError
 			return res
 		}
-		// case TxTypeTransfer:
-		// 	var t TransferTx
-		// 	if err := cdc.UnmarshalJSON(jsonBytes, &t); err != nil {
-		// 		res.Code = TypeExecuteError
-		// 		return res
-		// 	}
-		// 	if t.Verify() {
-		// 		sender, res := GetAccount(state, t.Sender)
-		// 		if res.IsErr() {
-		// 			res.Code = TypeAddressInvalid
-		// 			return res
-		// 		}
-		// 		receiver, res := GetAccount(state, t.Receiver)
-		// 		if res.IsErr() {
-		// 			res.Code = TypeAddressInvalid
-		// 			return res
-		// 		}
-		// 		sender.Coin.Sub(t.Coin)
-		// 		receiver.Coin.Add(t.Coin)
-		// 		SetAccount(state, sender.GetAddress(), *sender)
-		// 		SetAccount(state, receiver.GetAddress(), *receiver)
-		// 		res.Code = TypeOK
-		// 	} else {
-		// 		res.Code = TypeVerifyError
-		// 		return res
-		// 	}
 
 	}
 

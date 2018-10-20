@@ -21,7 +21,6 @@ func init() {
 	RegisterAmino(cdc)
 }
 
-// RegisterAmino registers all crypto related types in the given (amino) codec.
 func RegisterAmino(cdc *amino.Codec) {
 	// These are all written here instead of
 	cdc.RegisterInterface((*crypto.PubKey)(nil), nil)

@@ -101,8 +101,8 @@ func cmdCreate(cmd *cobra.Command, args []string) error {
 	return err
 }
 
-func cmdTransfer(cmd *cobra.Command, args []string) error {
-}
+// func cmdTransfer(cmd *cobra.Command, args []string) error {
+// }
 
 func addCommands() {
 	RootCmd.AddCommand(CreateAccountCmd)
