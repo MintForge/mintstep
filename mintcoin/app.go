@@ -25,6 +25,7 @@ func NewMintCoinApplication() *MintCoinApplication {
 	db := dbm.NewMemDB()
 	state := InitState(db)
 	logger := log.New(os.Stdout, "DEBUG", log.Ldate|log.Ltime)
+	RegisterAmino(cdc)
 	return &MintCoinApplication{state: state, logger: logger}
 }
 
@@ -81,31 +82,30 @@ func (app *MintCoinApplication) Query(req abci.RequestQuery) (res abci.ResponseQ
 }
 
 func ExecTx(state *State, txBytes []byte) (res Result) {
-	var raw_tx json.RawMessage
-	tx := Tx{
-		RawTx: &raw_tx,
-	}
+	var tx Tx
 	if err := json.Unmarshal(txBytes, &tx); err != nil {
 		res.Code = TypeJsonEncodingError
 		return
 	}
+	raw_str := tx.RawTx
+	jsonBytes, _ := base64.StdEncoding.DecodeString(raw_str)
 	switch tx.Type {
 	case TxTypeCreate:
 		var t CreateTx
-		if err := json.Unmarshal(raw_tx, &t); err != nil {
+		if err := cdc.UnmarshalJSON(jsonBytes, &t); err != nil {
 			res.Code = TypeExecuteError
 			return res
 		}
 		if t.Verify() {
 			account := NewAccount(t.PubKey, 10000)
-			SetAccount(state, account.GetAddress(), *account)
+			SetAccount(state, t.PubKey.Address(), account)
 		} else {
 			res.Code = TypeVerifyError
 			return res
 		}
 	case TxTypeTransfer:
 		var t TransferTx
-		if err := json.Unmarshal(raw_tx, &t); err != nil {
+		if err := cdc.UnmarshalJSON(jsonBytes, &t); err != nil {
 			res.Code = TypeExecuteError
 			return res
 		}

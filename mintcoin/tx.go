@@ -2,13 +2,15 @@ package mintcoin
 
 import (
 	"bytes"
+	"encoding/base64"
+	"fmt"
 
 	"github.com/tendermint/tendermint/crypto"
 )
 
 type Tx struct {
-	Type  byte        `json:"type"`
-	RawTx interface{} `json:"raw_tx"`
+	Type  byte   `json:"type"`
+	RawTx string `json:"raw_tx"`
 }
 
 const (
@@ -51,27 +53,41 @@ func (tx *TransferTx) Verify() bool {
 }
 
 func NewTransferTx(pub_key crypto.PubKey, sequence uint64, signature []byte, receiver crypto.Address, amount uint64) *Tx {
+	RegisterAmino(cdc)
 	address := pub_key.Address()
+	raw, err := cdc.MarshalJSON(TransferTx{
+		Sender:    address,
+		PubKey:    pub_key,
+		Signature: signature,
+		Coin:      NewCoin(amount),
+		Sequence:  sequence,
+		Receiver:  receiver,
+	})
+	fmt.Println(err)
+	raw_str := base64.StdEncoding.EncodeToString(raw)
+
 	return &Tx{
-		Type: TxTypeTransfer,
-		RawTx: TransferTx{
-			Sender:    address,
-			PubKey:    pub_key,
-			Signature: signature,
-			Coin:      NewCoin(amount),
-			Sequence:  sequence,
-			Receiver:  receiver,
-		},
+		Type:  TxTypeTransfer,
+		RawTx: raw_str,
 	}
 }
 
 func NewCreateTx(pub_key crypto.PubKey, signature []byte) *Tx {
+	RegisterAmino(cdc)
+	raw, err := cdc.MarshalJSON(CreateTx{
+		Address:   pub_key.Address(),
+		PubKey:    pub_key,
+		Signature: signature,
+	})
+
+	fmt.Println(err)
+	fmt.Println(raw)
+	raw_str := base64.StdEncoding.EncodeToString(raw)
+
+	fmt.Println(raw_str)
+
 	return &Tx{
-		Type: TxTypeCreate,
-		RawTx: CreateTx{
-			Address:   pub_key.Address(),
-			PubKey:    pub_key,
-			Signature: signature,
-		},
+		Type:  TxTypeCreate,
+		RawTx: raw_str,
 	}
 }

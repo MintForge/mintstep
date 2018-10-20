@@ -1,7 +1,6 @@
 package mintcoin
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/tendermint/tendermint/crypto"
@@ -13,8 +12,8 @@ type Account struct {
 	Sequence int64         `json:"sequence"`
 }
 
-func NewAccount(pub_key crypto.PubKey, amount uint64) *Account {
-	return &Account{
+func NewAccount(pub_key crypto.PubKey, amount uint64) Account {
+	return Account{
 		Coin:     NewCoin(amount),
 		PubKey:   pub_key,
 		Sequence: 0,
@@ -34,7 +33,7 @@ func (acc Account) GetSequence() int64 {
 }
 
 func (acc Account) String() string {
-	return fmt.Sprintf("account %+v\n", acc)
+	return fmt.Sprintf("account:%v\n", acc.PubKey.Address())
 }
 
 func GetAccount(state *State, addr []byte) (*Account, Result) {
@@ -46,7 +45,7 @@ func GetAccount(state *State, addr []byte) (*Account, Result) {
 		return nil, res
 	}
 	var acc Account
-	err := json.Unmarshal(data, &acc)
+	err := cdc.UnmarshalJSON(data, &acc)
 	if err != nil {
 		res.Code = TypeJsonEncodingError
 		return nil, res
@@ -55,17 +54,18 @@ func GetAccount(state *State, addr []byte) (*Account, Result) {
 	return &acc, res
 }
 
-func SetAccount(state *State, addr []byte, acc Account) {
+func SetAccount(state *State, addr crypto.Address, acc Account) {
 	db := state.GetDB()
-	accBytes, err := json.Marshal(acc)
+	accBytes, err := cdc.MarshalJSON(acc)
 	if err != nil {
+		fmt.Println(err)
 		panic(err)
 	}
-	db.Set(addr, accBytes)
+	db.Set([]byte(addr.String()), accBytes)
 }
 
 type PriviteAccount struct {
-	Name string
-	crypto.PrivKey
+	Name    string         `json:"name"`
+	Privkey crypto.PrivKey `json:"priv_key"`
 	Account
 }
