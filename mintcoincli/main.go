@@ -101,29 +101,11 @@ func cmdCreate(cmd *cobra.Command, args []string) error {
 	return err
 }
 
-// func cmdTransfer(cmd *cobra.Command, args []string) error {
-// 	sender := args[0]
-// 	receiver := args[1]
-// 	amount, _ := strconv.ParseInt(args[2], 10, 64)
-// 	tx := basecoin.NewTransferTx([]byte(sender), 0, []byte(receiver), uint64(amount))
-// 	jsonBytes, _ := json.Marshal(tx)
-// 	txBytes := base64.StdEncoding.EncodeToString(jsonBytes)
-// 	url := fmt.Sprintf(`http://localhost:26657/broadcast_tx_commit?tx="%v"`, txBytes)
-// 	resp, err := http.Get(url)
-// 	defer resp.Body.Close()
-// 	body, err := ioutil.ReadAll(resp.Body)
-// 	if err != nil {
-// 		// handle error
-// 		panic(err)
-// 	}
-
-// 	fmt.Println(string(body))
-// 	return err
-// }
+func cmdTransfer(cmd *cobra.Command, args []string) error {
+}
 
 func addCommands() {
 	RootCmd.AddCommand(CreateAccountCmd)
-	// RootCmd.AddCommand(TransferTxCmd)
 }
 
 func Execute() error {
